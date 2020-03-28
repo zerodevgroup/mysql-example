@@ -31,3 +31,30 @@ curl -X POST \
 ]' \
 http://localhost:8080/api/users/bulk
 ```
+
+## MySQL Commands (assumes a databased called mydb and a table called users)
+
+### Select all databases
+```
+show databases;
+```
+
+### Connect and start using mydb database
+```
+use mydb;
+```
+
+### Show tables in the mydb database
+```
+show tables;
+```
+
+### Select all rows from the users table
+```
+SELECT * from users;
+```
+
+### Delete all rows from the users table
+```
+DELETE FROM users;
+```
