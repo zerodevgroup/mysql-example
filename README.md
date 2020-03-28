@@ -16,7 +16,7 @@ pm2 start
 curl -X POST \
 -H 'accept:application/json' \
 -H 'content-type:application/json' \
--d '{"firstName": "Sean", "lastName": "Wright", "email": "sean.wright@zerodevgroup.com"}' \
+-d '{"firstName": "Corrie", "lastName": "Meads", "email": "corrie.meads@corriemeads.me"}' \
 http://localhost:8080/api/users
 ```
 
@@ -26,8 +26,8 @@ curl -X POST \
 -H 'accept:application/json' \
 -H 'content-type:application/json' \
 -d '[
-  {"firstName": "Sean", "lastName": "Wright", "email": "sean.wright@zerodevgroup.com"},
-  {"firstName": "Noah", "lastName": "Wright", "email": "noah.wright@zerodevgroup.com"}
+  {"firstName": "Nickolas", "Thomasson": "Wright", "email": "nickolas.thomasson@nickolasthomasson.me"},
+  {"firstName": "Lester", "lastName": "Mattheus", "email": "lester.mattheus@lestermattheus.me"}
 ]' \
 http://localhost:8080/api/users/bulk
 ```
