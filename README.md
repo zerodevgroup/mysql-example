@@ -26,7 +26,7 @@ curl -X POST \
 -H 'accept:application/json' \
 -H 'content-type:application/json' \
 -d '[
-  {"firstName": "Nickolas", "Thomasson": "Wright", "email": "nickolas.thomasson@nickolasthomasson.me"},
+  {"firstName": "Nickolas", "lastName: "Thomasson", "email": "nickolas.thomasson@nickolasthomasson.me"},
   {"firstName": "Lester", "lastName": "Mattheus", "email": "lester.mattheus@lestermattheus.me"}
 ]' \
 http://localhost:8080/api/users/bulk
