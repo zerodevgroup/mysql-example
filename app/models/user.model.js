@@ -7,7 +7,7 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING
     },
     email: {
-      type: Sequelize.BOOLEAN
+      type: Sequelize.STRING
     }
   });
 

@@ -6,5 +6,8 @@ module.exports = app => {
   // Create a new User
   router.post("/", users.create);
 
+  // Bulk Create multiple Users
+  router.post("/bulk", users.bulkCreate);
+
   app.use('/api/users', router);
 };
