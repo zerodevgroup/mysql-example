@@ -2,6 +2,24 @@ const db = require("../models");
 const User = db.users;
 const Op = db.Sequelize.Op;
 
+// Retrieve all Users (or some) from the database.
+exports.findAll = (req, res) => {
+  const lastName = req.query.lastName;
+  var condition = lastName ? { lastName: { [Op.like]: `%${lastName}%` } } : null;
+
+  User.findAll({ where: condition })
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving tutorials."
+      });
+    });
+};
+
+
 // Create and Save a new User
 exports.create = (req, res) => {
   // Validate request
