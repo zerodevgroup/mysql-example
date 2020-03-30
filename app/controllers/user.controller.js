@@ -1,6 +1,7 @@
 const db = require("../models");
 const User = db.users;
 const Op = db.Sequelize.Op;
+const moment = require("moment")
 
 // Retrieve all Users (or some) from the database.
 exports.findAll = (req, res) => {
@@ -34,7 +35,8 @@ exports.create = (req, res) => {
   const user = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
-    email: req.body.email
+    email: req.body.email,
+    renewalDate: req.body.renewalDate ? moment(new Date(req.body.renewalDate)).format("YYYY-MM-DD HH:MM:ss") : null
   };
 
   // Save User in the database
@@ -55,6 +57,12 @@ exports.bulkCreate = (req, res) => {
 
   // TODO: Validate request
   const users = req.body;
+
+  users.map((user) => {
+    user.renewalDate = user.renewalDate ? moment(new Date(user.renewalDate)).format("YYYY-MM-DD HH:MM:ss") : null
+  })
+
+  console.log(users)
 
   // Save Users into the database
   User.bulkCreate(users)
