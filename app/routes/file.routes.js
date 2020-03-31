@@ -4,7 +4,7 @@ module.exports = app => {
   var router = require("express").Router();
 
   // Download a file
-  router.get("/download/:fileName", files.downloadFile);
+  router.get("/download/:timeStamp", files.downloadFile);
 
   // Upload a file
   router.post("/upload", files.uploadFile);

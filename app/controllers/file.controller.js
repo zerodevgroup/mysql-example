@@ -1,16 +1,48 @@
 const formidable = require("formidable")
 const moment = require("moment")
+const fs = require("fs")
+const JSZip = require("jszip")
 
 // Download a file
 exports.downloadFile = (req, res) => {
-  let fileName = req.params.fileName
-  const file = `/tmp/${fileName}`
+  let timeStamp = req.params.timeStamp
 
-  console.log(file)
+  fs.readdir("/tmp", (err, items) => {
 
-  res.download(file)
-};
+    let filesMatched = []
 
+    items.forEach((item) => {
+      let expression = new RegExp(`${timeStamp}\.xlsx`)
+
+      if(item.match(expression)) {
+        const fileName = `/tmp/${item}`
+
+        let fileData = fs.readFileSync(fileName)
+
+        filesMatched.push({
+          name: item,
+          data: fileData
+        })
+      }
+    })
+
+    if(filesMatched.length > 0) {
+      let zip = new JSZip();
+      let zipFile = `/tmp/${timeStamp}.zip`
+
+      filesMatched.forEach((file) => {
+        zip.file(file.name, file.data)
+      })
+
+      zip.generateAsync({type:"nodebuffer"}).then((content) => {
+        fs.writeFileSync(zipFile, content)
+        res.download(zipFile)
+      })
+
+    }
+
+  })
+}
 
 // Upload a file
 exports.uploadFile = (req, res) => {
@@ -35,3 +67,8 @@ exports.uploadFile = (req, res) => {
       res.end()
     })
 };
+
+
+
+
+
