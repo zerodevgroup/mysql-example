@@ -44,6 +44,21 @@ exports.downloadFile = (req, res) => {
   })
 }
 
+// Find a file
+exports.findFile = (req, res) => {
+  let fileName = req.params.fileName
+  if(fs.existsSync(`/tmp/${fileName}`)) {
+    res.json({
+      found: true
+    })
+  }
+  else {
+    res.json({
+      found: false
+    })
+  }
+}
+
 // Upload a file
 exports.uploadFile = (req, res) => {
   new formidable.IncomingForm().parse(req)
@@ -67,8 +82,4 @@ exports.uploadFile = (req, res) => {
       res.end()
     })
 };
-
-
-
-
 

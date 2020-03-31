@@ -6,6 +6,9 @@ module.exports = app => {
   // Download a file
   router.get("/download/:timeStamp", files.downloadFile);
 
+  // Download a file
+  router.get("/find/:fileName", files.findFile);
+
   // Upload a file
   router.post("/upload", files.uploadFile);
 
