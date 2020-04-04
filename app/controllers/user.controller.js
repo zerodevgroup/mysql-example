@@ -1,7 +1,8 @@
 const db = require("../models");
-const User = db.users;
-const Op = db.Sequelize.Op;
+const fs = require("fs")
 const moment = require("moment")
+const Op = db.Sequelize.Op;
+const User = db.users;
 
 // Retrieve all Users (or some) from the database.
 exports.findAll = (req, res) => {
@@ -11,6 +12,41 @@ exports.findAll = (req, res) => {
   User.findAll({ where: condition })
     .then(data => {
       res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving tutorials."
+      });
+    });
+};
+
+// Export all Users (or some) from the database.
+exports.exportAll = (req, res) => {
+  // Validate request
+  if (!req.body.lastName || !req.body.fileName) {
+    res.status(400).send({
+      message: "Content can not be empty!"
+    });
+    return;
+  }
+
+  const fileName = req.body.fileName;
+  const lastName = req.body.lastName;
+
+  const file = fs.createWriteStream(`/tmp/${fileName}`)
+
+  var condition = lastName ? { lastName: { [Op.like]: `%${lastName}%` } } : null;
+
+  User.findAll({ where: condition })
+    .then(data => {
+      data.forEach((user) => {
+				file.write(`${JSON.stringify(user)}\n`)
+      })
+
+			file.end()
+
+      res.send({count: data.length})
     })
     .catch(err => {
       res.status(500).send({
