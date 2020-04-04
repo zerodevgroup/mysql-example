@@ -47,19 +47,34 @@ let toCsv = (item) => {
   return csv
 }
 
-// Export all Users (or some) from the database.
-exports.exportAll = (req, res) => {
+// Arrange users into groups and segments
+exports.groups = async (req, res) => {
   // Validate request
-  if (!req.body.lastName || !req.body.fileName) {
+  if (!req.body) {
     res.status(400).send({
-      message: "Content can not be empty!"
-    });
-    return;
+      message: "POST data can not be empty!"
+    })
+    return
   }
 
-  const fileName = req.body.fileName;
-  const lastName = req.body.lastName;
+  let groups = req.body
 
+  let groupsResult = []
+  for(let i = 0; i < groups.length; i++) {
+    let group = groups[i]
+    let data = await findData(group)
+
+    groupsResult.push({
+      groupName: group.groupName,
+      timeStamp: group.timeStamp,
+      count: data.length
+    })
+    // createSegments
+  }
+
+  res.json(groupsResult)
+
+  /*
   const file = fs.createWriteStream(`/tmp/${fileName}`)
 
   var condition = lastName ? { lastName: { [Op.like]: `%${lastName}%` } } : null;
@@ -84,6 +99,29 @@ exports.exportAll = (req, res) => {
       err.message || "Some error occurred while retrieving tutorials."
     })
   })
+  */
+}
+
+let findData = async (options) => {
+  let condition = {}
+  let filters = options.filters
+
+  for(let i = 0; i < filters.length; i++) {
+    let filter = filters[i]
+
+    let filterId = filter.id.toUpperCase()
+    let filterValue = filter.value
+
+    condition[filterId] = filterValue
+    try {
+      let data = await User.findAll({ where: condition })
+      console.log("FOUND DATA")
+      return data
+    }
+    catch(error) {
+      return error
+    }
+  }
 }
 
 // Create and Save a new User

@@ -6,8 +6,8 @@ module.exports = app => {
   // Find users
   router.get("/find/:lastName", users.findAll);
 
-  // Export users
-  router.post("/export", users.exportAll);
+  // Export users as segments to CSV files
+  router.post("/groups", users.groups);
 
   // Create a new User
   router.post("/", users.create);
