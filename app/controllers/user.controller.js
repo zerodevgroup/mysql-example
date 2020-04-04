@@ -21,6 +21,32 @@ exports.findAll = (req, res) => {
     });
 };
 
+let toCsvHeader = (item) => {
+  let csvHeader = ""
+  Object.keys(item.dataValues).forEach((key, index) => {
+    if(index > 0) {
+      csvHeader += ","
+    }
+    csvHeader += `"${key}"`
+  })
+
+  csvHeader += "\n"
+  return csvHeader
+}
+
+let toCsv = (item) => {
+  let csv = ""
+  Object.keys(item.dataValues).forEach((key, index) => {
+    if(index > 0) {
+      csv += ","
+    }
+    csv += `"${item.dataValues[key]}"`
+  })
+
+  csv += "\n"
+  return csv
+}
+
 // Export all Users (or some) from the database.
 exports.exportAll = (req, res) => {
   // Validate request
@@ -39,23 +65,26 @@ exports.exportAll = (req, res) => {
   var condition = lastName ? { lastName: { [Op.like]: `%${lastName}%` } } : null;
 
   User.findAll({ where: condition })
-    .then(data => {
-      data.forEach((user) => {
-				file.write(`${JSON.stringify(user)}\n`)
-      })
+  .then(data => {
 
-			file.end()
-
-      res.send({count: data.length})
+    data.forEach((user, index) => {
+      if(index === 0) {
+        file.write(toCsvHeader(user))
+      }
+      file.write(toCsv(user))
     })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving tutorials."
-      });
-    });
-};
 
+    file.end()
+
+    res.send({count: data.length})
+  })
+  .catch(err => {
+    res.status(500).send({
+    message:
+      err.message || "Some error occurred while retrieving tutorials."
+    })
+  })
+}
 
 // Create and Save a new User
 exports.create = (req, res) => {
