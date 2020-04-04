@@ -64,12 +64,38 @@ exports.groups = async (req, res) => {
     let group = groups[i]
     let data = await findData(group)
 
-    groupsResult.push({
+    let groupResult = {
       groupName: group.groupName,
       timeStamp: group.timeStamp,
-      count: data.length
+      count: data.length,
+      segments: [],
+    }
+
+    let segments = createSegments({
+      segments: group.segments,
+      data: data,
     })
-    // createSegments
+
+    segments.forEach((segment) => {
+      let fileName = `${group.groupName}_${segment.name}_${group.timeStamp}.csv`
+      let file = fs.createWriteStream(`/tmp/${fileName}`)
+
+      segment.data.forEach((item, index) => {
+        if(index === 0) {
+          file.write(toCsvHeader(item))
+        }
+        file.write(toCsv(item))
+      })
+
+      file.end()
+
+      groupResult.segments.push({
+        name: segment.name,
+        count: segment.data.length
+      })
+    })
+
+    groupsResult.push(groupResult)
   }
 
   res.json(groupsResult)
@@ -122,6 +148,41 @@ let findData = async (options) => {
       return error
     }
   }
+}
+
+let createSegments = (options) => {
+  let segmentOptions = options.segments
+  let data = options.data
+
+  let segments = []
+  segmentOptions.forEach((segmentOption) => {
+    let segment = {
+      name: segmentOption.name,
+      data: []
+    }
+
+    data.forEach((item) => {
+      if(segmentOption.filters) {
+        let itemFound = true
+
+        segmentOption.filters.forEach((filter) => {
+          if(item[filter.id] !== filter.value) {
+            itemFound = false
+          }
+        })
+
+        if(itemFound) {
+          segment.data.push(item)
+        }
+      }
+      else {
+        segment.push(item)
+      }
+    })
+    segments.push(segment)
+  })
+
+  return segments
 }
 
 // Create and Save a new User

@@ -19,7 +19,10 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING
     },
     timestamp: {
-      type: Sequelize.STRING
+      type: Sequelize.BIGINT
+    },
+    hosted: {
+      type: Sequelize.BOOLEAN
     },
   },
   {
