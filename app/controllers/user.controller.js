@@ -1,25 +1,26 @@
-const db = require("../models");
+const db = require("../models")
 const fs = require("fs")
+const _ = require("lodash")
 const moment = require("moment")
-const Op = db.Sequelize.Op;
-const User = db.users;
+const Op = db.Sequelize.Op
+const User = db.users
 
 // Retrieve all Users (or some) from the database.
 exports.findAll = (req, res) => {
-  const lastName = req.query.lastName;
-  var condition = lastName ? { lastName: { [Op.like]: `%${lastName}%` } } : null;
+  const lastName = req.query.lastName
+  var condition = lastName ? { lastName: { [Op.like]: `%${lastName}%` } } : null
 
   User.findAll({ where: condition })
     .then(data => {
-      res.send(data);
+      res.send(data)
     })
     .catch(err => {
       res.status(500).send({
         message:
           err.message || "Some error occurred while retrieving tutorials."
-      });
-    });
-};
+      })
+    })
+}
 
 let toCsvHeader = (item) => {
   let csvHeader = ""
@@ -73,11 +74,12 @@ exports.groups = async (req, res) => {
 
     let segments = createSegments({
       segments: group.segments,
+      abTesting: group.abTesting,
       data: data,
     })
 
     segments.forEach((segment) => {
-      let fileName = `${group.groupName}_${segment.name}_${group.timeStamp}.csv`
+      let fileName = `${group.groupName}_${segment.name}_${segment.index}_${group.timeStamp}.csv`
       let file = fs.createWriteStream(`/tmp/${fileName}`)
 
       segment.data.forEach((item, index) => {
@@ -99,33 +101,6 @@ exports.groups = async (req, res) => {
   }
 
   res.json(groupsResult)
-
-  /*
-  const file = fs.createWriteStream(`/tmp/${fileName}`)
-
-  var condition = lastName ? { lastName: { [Op.like]: `%${lastName}%` } } : null;
-
-  User.findAll({ where: condition })
-  .then(data => {
-
-    data.forEach((user, index) => {
-      if(index === 0) {
-        file.write(toCsvHeader(user))
-      }
-      file.write(toCsv(user))
-    })
-
-    file.end()
-
-    res.send({count: data.length})
-  })
-  .catch(err => {
-    res.status(500).send({
-    message:
-      err.message || "Some error occurred while retrieving tutorials."
-    })
-  })
-  */
 }
 
 let findData = async (options) => {
@@ -151,22 +126,25 @@ let findData = async (options) => {
 }
 
 let createSegments = (options) => {
-  let segmentOptions = options.segments
+  let segmentFilters = parseSegments(options)
   let data = options.data
 
   let segments = []
-  segmentOptions.forEach((segmentOption) => {
+  segmentFilters.forEach((segmentFilter, index) => {
     let segment = {
-      name: segmentOption.name,
+      name: segmentFilter.name,
+      index: segmentFilter.index ? segmentFilter.index : index,
       data: []
     }
 
-    data.forEach((item) => {
-      if(segmentOption.filters) {
+    let segmentData = segmentFilter.data ? segmentFilter.data : data
+
+    segmentData.forEach((item) => {
+      if(segmentFilter.filters) {
         let itemFound = true
 
-        segmentOption.filters.forEach((filter) => {
-          if(item[filter.id] !== filter.value) {
+        segmentFilter.filters.forEach((filter) => {
+          if(_.toLower(item[filter.id]) !== _.toLower(filter.value)) {
             itemFound = false
           }
         })
@@ -185,14 +163,37 @@ let createSegments = (options) => {
   return segments
 }
 
+let parseSegments = (options) => {
+  let segmentFilters = []
+  let data = options.data
+  options.segments.forEach((segmentFilter, index) => {
+    if(options.abTesting) {
+      // splice half of the data
+      let segmentAData = data.splice(0, data.length / 2)
+      let segmentAFilter = Object.assign({data: segmentAData, index: `${index}a`}, segmentFilter)
+      segmentFilters.push(segmentAFilter)
+
+      // the previous splice changed the original array, leaving the remainder of the data that wasn't spliced out
+      let segmentBData = data
+      let segmentBFilter = Object.assign({data: segmentBData, index: `${index}b`}, segmentFilter)
+      segmentFilters.push(segmentBFilter)
+    }
+    else {
+      segmentFilters.push(segmentFilter)
+    }
+  })
+
+  return segmentFilters
+}
+
 // Create and Save a new User
 exports.create = (req, res) => {
   // Validate request
   if (!req.body.firstName) {
     res.status(400).send({
       message: "Content can not be empty!"
-    });
-    return;
+    })
+    return
   }
 
   // Create a User
@@ -201,26 +202,26 @@ exports.create = (req, res) => {
     lastName: req.body.lastName,
     email: req.body.email,
     renewalDate: req.body.renewalDate ? moment(new Date(req.body.renewalDate)).format("YYYY-MM-DD HH:MM:ss") : null
-  };
+  }
 
   // Save User in the database
   User.create(user)
     .then(data => {
-      res.send(data);
+      res.send(data)
     })
     .catch(err => {
       res.status(500).send({
         message:
           err.message || "Some error occurred while creating the Users."
-      });
-    });  
-};
+      })
+    })  
+}
 
 // Create and Save a new Users in Bulk
 exports.bulkCreate = (req, res) => {
 
   // TODO: Validate request
-  const users = req.body;
+  const users = req.body
 
   users.map((user) => {
     user.renewalDate = user.renewalDate ? moment(new Date(user.renewalDate)).format("YYYY-MM-DD HH:MM:ss") : null
@@ -231,12 +232,12 @@ exports.bulkCreate = (req, res) => {
   // Save Users into the database
   User.bulkCreate(users)
     .then(data => {
-      res.send(data);
+      res.send(data)
     })
     .catch(err => {
       res.status(500).send({
         message:
           err.message || "Some error occurred while creating the Users."
-      });
-    });
-};
+      })
+    })
+}
