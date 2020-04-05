@@ -48,7 +48,7 @@ let toCsv = (item) => {
   return csv
 }
 
-// Arrange users into groups and segments
+// Arrange users into groups and actions
 exports.groups = async (req, res) => {
   // Validate request
   if (!req.body) {
@@ -75,22 +75,22 @@ exports.groups = async (req, res) => {
       groupName: group.groupName,
       timeStamp: group.timeStamp,
       count: data.length,
-      segments: [],
+      actions: [],
     }
 
-    // create segments
-    let segments = createSegments({
-      segments: group.segments,
+    // create actions
+    let actions = createActions({
+      actions: group.actions,
       abTesting: group.abTesting,
       data: data,
     })
 
-    // write csv files for each segment utilizing file streaming
-    segments.forEach((segment) => {
-      let fileName = `${group.groupName}_${segment.name}_${segment.index}_${group.timeStamp}.csv`
+    // write csv files for each action utilizing file streaming
+    actions.forEach((action) => {
+      let fileName = `${group.groupName}_${action.name}_${action.index}_${group.timeStamp}.csv`
       let file = fs.createWriteStream(`/tmp/${fileName}`)
 
-      segment.data.forEach((item, index) => {
+      action.data.forEach((item, index) => {
         if(index === 0) {
           file.write(toCsvHeader(item))
         }
@@ -99,10 +99,10 @@ exports.groups = async (req, res) => {
 
       file.end()
 
-      groupResult.segments.push({
-        name: segment.name,
-        index: segment.index,
-        count: segment.data.length
+      groupResult.actions.push({
+        name: action.name,
+        index: action.index,
+        count: action.data.length
       })
     })
 
@@ -134,29 +134,29 @@ let findData = async (options) => {
   }
 }
 
-let createSegments = (options) => {
-  // pre-process (parse) segments, including AB Testing if specified
-  let segmentFilters = parseSegments(options)
+let createActions = (options) => {
+  // pre-process (parse) actions, including AB Testing if specified
+  let actionFilters = parseActions(options)
   let data = options.data
 
-  // Arrange segments by segmentFilter
-  let segments = []
-  segmentFilters.forEach((segmentFilter, index) => {
-    let segment = {
-      name: segmentFilter.name,
-      index: segmentFilter.index ? segmentFilter.index : index,
+  // Arrange actions by actionFilter
+  let actions = []
+  actionFilters.forEach((actionFilter, index) => {
+    let action = {
+      name: actionFilter.name,
+      index: actionFilter.index ? actionFilter.index : index,
       data: []
     }
 
-    // See if segmentFilter has it's own data
-    let segmentData = segmentFilter.data ? segmentFilter.data : data
+    // See if actionFilter has it's own data
+    let actionData = actionFilter.data ? actionFilter.data : data
 
-    // Filter segment data based on segmentFilter's filters
-    segmentData.forEach((item) => {
-      if(segmentFilter.filters) {
+    // Filter action data based on actionFilter's filters
+    actionData.forEach((item) => {
+      if(actionFilter.filters) {
         let itemFound = true
 
-        segmentFilter.filters.forEach((filter) => {
+        actionFilter.filters.forEach((filter) => {
           if(filter.operator) {
             if(!eval(`${_.toLower(item[filter.id])} ${filter.operator} ${_.toLower(filter.value)}`) {
               itemFound = false
@@ -170,41 +170,41 @@ let createSegments = (options) => {
         })
 
         if(itemFound) {
-          segment.data.push(item)
+          action.data.push(item)
         }
       }
       else {
-        segment.push(item)
+        action.push(item)
       }
     })
-    segments.push(segment)
+    actions.push(action)
   })
 
-  return segments
+  return actions
 }
 
-let parseSegments = (options) => {
-  let segmentFilters = []
+let parseActions = (options) => {
+  let actionFilters = []
   let data = options.data
-  options.segments.forEach((segmentFilter, index) => {
+  options.actions.forEach((actionFilter, index) => {
     // check for AB Testing
     if(options.abTesting) {
       // splice half of the data
-      let segmentAData = data.splice(0, data.length / 2)
-      let segmentAFilter = Object.assign({data: segmentAData, index: `${index}a`}, segmentFilter)
-      segmentFilters.push(segmentAFilter)
+      let actionAData = data.splice(0, data.length / 2)
+      let actionAFilter = Object.assign({data: actionAData, index: `${index}a`}, actionFilter)
+      actionFilters.push(actionAFilter)
 
       // the previous splice changed the original array, leaving the remainder of the data that wasn't spliced out
-      let segmentBData = data
-      let segmentBFilter = Object.assign({data: segmentBData, index: `${index}b`}, segmentFilter)
-      segmentFilters.push(segmentBFilter)
+      let actionBData = data
+      let actionBFilter = Object.assign({data: actionBData, index: `${index}b`}, actionFilter)
+      actionFilters.push(actionBFilter)
     }
     else {
-      segmentFilters.push(segmentFilter)
+      actionFilters.push(actionFilter)
     }
   })
 
-  return segmentFilters
+  return actionFilters
 }
 
 // Create and Save a new User
