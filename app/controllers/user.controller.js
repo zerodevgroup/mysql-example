@@ -58,6 +58,10 @@ exports.groups = async (req, res) => {
     return
   }
 
+  res.json({
+    status: "Processing" 
+  })
+
   let groups = req.body
 
   let groupsResult = []
@@ -105,7 +109,7 @@ exports.groups = async (req, res) => {
     groupsResult.push(groupResult)
   }
 
-  res.json(groupsResult)
+  console.log(groupsResult)
 }
 
 let findData = async (options) => {
