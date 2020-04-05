@@ -61,6 +61,8 @@ exports.groups = async (req, res) => {
   let groups = req.body
 
   let groupsResult = []
+
+  // process groups
   for(let i = 0; i < groups.length; i++) {
     let group = groups[i]
     let data = await findData(group)
@@ -72,12 +74,14 @@ exports.groups = async (req, res) => {
       segments: [],
     }
 
+    // create segments
     let segments = createSegments({
       segments: group.segments,
       abTesting: group.abTesting,
       data: data,
     })
 
+    // write csv files for each segment utilizing file streaming
     segments.forEach((segment) => {
       let fileName = `${group.groupName}_${segment.name}_${segment.index}_${group.timeStamp}.csv`
       let file = fs.createWriteStream(`/tmp/${fileName}`)
@@ -93,6 +97,7 @@ exports.groups = async (req, res) => {
 
       groupResult.segments.push({
         name: segment.name,
+        index: segment.index,
         count: segment.data.length
       })
     })
@@ -107,6 +112,7 @@ let findData = async (options) => {
   let condition = {}
   let filters = options.filters
 
+  // filter data based on group filter(s)
   for(let i = 0; i < filters.length; i++) {
     let filter = filters[i]
 
@@ -116,7 +122,6 @@ let findData = async (options) => {
     condition[filterId] = filterValue
     try {
       let data = await User.findAll({ where: condition })
-      console.log("FOUND DATA")
       return data
     }
     catch(error) {
@@ -126,9 +131,11 @@ let findData = async (options) => {
 }
 
 let createSegments = (options) => {
+  // pre-process (parse) segments, including AB Testing if specified
   let segmentFilters = parseSegments(options)
   let data = options.data
 
+  // Arrange segments by segmentFilter
   let segments = []
   segmentFilters.forEach((segmentFilter, index) => {
     let segment = {
@@ -137,8 +144,10 @@ let createSegments = (options) => {
       data: []
     }
 
+    // See if segmentFilter has it's own data
     let segmentData = segmentFilter.data ? segmentFilter.data : data
 
+    // Filter segment data based on segmentFilter's filters
     segmentData.forEach((item) => {
       if(segmentFilter.filters) {
         let itemFound = true
@@ -167,6 +176,7 @@ let parseSegments = (options) => {
   let segmentFilters = []
   let data = options.data
   options.segments.forEach((segmentFilter, index) => {
+    // check for AB Testing
     if(options.abTesting) {
       // splice half of the data
       let segmentAData = data.splice(0, data.length / 2)
