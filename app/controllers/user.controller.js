@@ -157,8 +157,15 @@ let createSegments = (options) => {
         let itemFound = true
 
         segmentFilter.filters.forEach((filter) => {
-          if(_.toLower(item[filter.id]) !== _.toLower(filter.value)) {
-            itemFound = false
+          if(filter.operator) {
+            if(!eval(`${_.toLower(item[filter.id])} ${filter.operator} ${_.toLower(filter.value)}`) {
+              itemFound = false
+            }
+          }
+          else {
+            if(_.toLower(item[filter.id]) !== _.toLower(filter.value)) {
+              itemFound = false
+            }
           }
         })
 
