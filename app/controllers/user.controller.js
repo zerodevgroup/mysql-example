@@ -158,7 +158,7 @@ let createActions = (options) => {
 
         actionFilter.filters.forEach((filter) => {
           if(filter.operator) {
-            if(!eval(`${_.toLower(item[filter.id])} ${filter.operator} ${_.toLower(filter.value)}`) {
+            if(!eval(`${_.toLower(item[filter.id])} ${filter.operator} ${_.toLower(filter.value)}`)) {
               itemFound = false
             }
           }
