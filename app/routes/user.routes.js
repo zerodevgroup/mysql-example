@@ -9,6 +9,9 @@ module.exports = app => {
   // Export users as segments to CSV files
   router.post("/groups", users.groups);
 
+  // Show count of users based on filter(s)
+  router.post("/count", users.count);
+
   // Create a new User
   router.post("/", users.create);
 

@@ -134,6 +134,41 @@ let findData = async (options) => {
   }
 }
 
+exports.count =  async (req, res) => {
+  let postData = req.body
+
+  console.log(postData)
+
+  let data = await countData(postData)
+  console.log(data)
+  res.json(data)
+}
+
+let countData = async (options) => {
+  let condition = {}
+  let filters = options.filters
+
+  // filter data based on group filter(s)
+  for(let i = 0; i < filters.length; i++) {
+    let filter = filters[i]
+
+    let filterId = filter.id.toUpperCase()
+    let filterValue = filter.value
+
+    condition[filterId] = filterValue
+  }
+
+  console.log(condition)
+
+  try {
+    let count = await User.count({ where: condition })
+    return { count: count }
+  }
+  catch(error) {
+    return error
+  }
+}
+
 let createActions = (options) => {
   // pre-process (parse) actions, including AB Testing if specified
   let actionFilters = parseActions(options)
