@@ -12,6 +12,9 @@ module.exports = app => {
   // Show count of users based on filter(s)
   router.post("/count", users.count);
 
+  // Filter users based on filter(s)
+  router.post("/filter", users.filter);
+
   // Create a new User
   router.post("/", users.create);
 

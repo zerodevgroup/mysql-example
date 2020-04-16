@@ -134,13 +134,19 @@ let findData = async (options) => {
   }
 }
 
-exports.count =  async (req, res) => {
+exports.filter =  async (req, res) => {
   let postData = req.body
 
   console.log(postData)
 
+  let data = await findData(postData)
+  res.json(data)
+}
+
+exports.count =  async (req, res) => {
+  let postData = req.body
+
   let data = await countData(postData)
-  console.log(data)
   res.json(data)
 }
 
@@ -157,8 +163,6 @@ let countData = async (options) => {
 
     condition[filterId] = filterValue
   }
-
-  console.log(condition)
 
   try {
     let count = await User.count({ where: condition })
@@ -282,8 +286,6 @@ exports.bulkCreate = (req, res) => {
   users.map((user) => {
     user.renewalDate = user.renewalDate ? moment(new Date(user.renewalDate)).format("YYYY-MM-DD HH:MM:ss") : null
   })
-
-  console.log(users)
 
   // Save Users into the database
   User.bulkCreate(users)
