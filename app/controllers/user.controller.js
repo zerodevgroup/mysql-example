@@ -125,7 +125,17 @@ let findData = async (options) => {
 
     condition[filterId] = filterValue
     try {
-      let data = await User.findAll({ where: condition })
+      let data = []
+      let count = await User.count({ where: condition })
+      if(count > 0) {
+        const itemsPerPage = 200
+
+        let pages = Math.ceil(count / itemsPerPage)
+        for(let page = 1, offset = 0; page <= pages; page++, offset += itemsPerPage) {
+          let items = await User.findAll({ where: condition, limit: itemsPerPage, offset: offset })
+          data.push(...items)
+        }
+      }
       return data
     }
     catch(error) {
